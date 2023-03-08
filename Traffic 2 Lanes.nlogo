@@ -8,6 +8,7 @@ turtles-own [
   top-speed     ; the maximum speed of the car (different for all cars)
   target-lane   ; the desired lane of the car
   patience      ; the driver's current level of patience
+  charge        ; the car's charge percentage
 ]
 
 to setup
@@ -36,12 +37,16 @@ to create-or-remove-cars
     set top-speed 0.5 + random-float 0.5
     set speed 0.5
     set patience random max-patience
+    set charge 100
   ]
 
   if count turtles > number-of-cars [
     let n count turtles - number-of-cars
     ask n-of n [ other turtles ] of selected-car [ die ]
   ]
+
+  ask turtles [set label precision charge 1]
+
 
 end
 
@@ -102,6 +107,9 @@ to go
   ask turtles [ move-forward ]
   ask turtles with [ patience <= 0 ] [ choose-new-lane ]
   ask turtles with [ ycor != target-lane ] [ move-to-target-lane ]
+
+  update-energy-value
+
   tick
 end
 
@@ -188,6 +196,14 @@ to-report number-of-lanes
   ; reporter and create a slider on the interface with the same
   ; name. 8 lanes is the maximum that currently fit in the view.
   report 2
+end
+
+
+to update-energy-value
+
+  ask turtles [set charge charge - 0.1 * speed]
+
+
 end
 
 
@@ -309,7 +325,7 @@ number-of-cars
 number-of-cars
 1
 number-of-lanes * world-width
-40.0
+12.0
 1
 1
 NIL
@@ -475,11 +491,30 @@ max-patience
 max-patience
 1
 100
-50.0
+73.0
 1
 1
 NIL
 HORIZONTAL
+
+PLOT
+1070
+10
+1270
+160
+Average Charge
+Time
+Charge
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" " let miny  min [charge] of turtles - 1\n let maxy max [charge] of turtles\n \n set miny precision miny 0\n \n set maxy precision maxy 0\n \n set-plot-y-range miny maxy"
+PENS
+"default" 1.0 0 -16777216 true "" "plot mean [charge] of turtles"
+"pen-1" 1.0 0 -2674135 true "" "plot [charge] of selected-car"
 
 @#$#@#$#@
 ## WHAT IS IT?
