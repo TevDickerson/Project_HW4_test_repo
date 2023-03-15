@@ -1,6 +1,7 @@
 globals [
   selected-car   ; the currently selected car
   lanes          ; a list of the y coordinates of different lanes
+  charge-nodes    ; a list of charging nodes
 ]
 
 turtles-own [
@@ -15,6 +16,7 @@ to setup
   clear-all
   set-default-shape turtles "car"
   draw-road
+  create-charging-nodes
   create-or-remove-cars
   set selected-car one-of turtles
   ask selected-car [ set color red ]
@@ -101,6 +103,18 @@ to draw-line [ y line-color gap ]
     die
   ]
 end
+
+
+to create-charging-nodes
+
+  let road-patches patches with [ member? pycor lanes ]      ; filters patches to just lane patches
+  set charge-nodes road-patches with [pxcor = 0 ]            ; filters lane patches to just one lane node.
+
+  ask charge-nodes [set pcolor red]
+end
+
+
+
 
 to go
   create-or-remove-cars
@@ -200,11 +214,27 @@ end
 
 
 to update-energy-value
+  ; Update the energy of the car.
 
   ask turtles [set charge charge - 0.1 * speed]
 
+  ask turtles[
+    if any? turtles-on charge-nodes
+    [
+      set charge charge + 0.5
+    ]
+  ]
+
+  show charge-nodes
+
 
 end
+
+
+to economic-cost
+
+end
+
 
 
 ; Copyright 1998 Uri Wilensky.
@@ -325,7 +355,7 @@ number-of-cars
 number-of-cars
 1
 number-of-lanes * world-width
-12.0
+1.0
 1
 1
 NIL
@@ -361,7 +391,7 @@ acceleration
 acceleration
 0.001
 0.01
-0.005
+0.003
 0.001
 1
 NIL
@@ -511,7 +541,7 @@ Charge
 10.0
 true
 false
-"" " let miny  min [charge] of turtles - 1\n let maxy max [charge] of turtles\n \n set miny precision miny 0\n \n set maxy precision maxy 0\n \n set-plot-y-range miny maxy"
+"" " let miny  min [charge] of turtles - 1\n let maxy max [charge] of turtles\n \n set miny precision miny 0\n \n set maxy precision maxy 0\n \n set-plot-y-range miny 100"
 PENS
 "default" 1.0 0 -16777216 true "" "plot mean [charge] of turtles"
 "pen-1" 1.0 0 -2674135 true "" "plot [charge] of selected-car"
