@@ -216,12 +216,19 @@ end
 to update-energy-value
   ; Update the energy of the car.
 
+  let charging-cars 0
+
   ask turtles [set charge charge - 0.1 * speed]
 
   ask turtles[
     if any? turtles-on charge-nodes
     [
-      set charge charge + 0.5
+      set charging-cars turtles-on charge-nodes
+
+      ask charging-cars[
+        set  charge charge + 0.05
+      ]
+
     ]
   ]
 
@@ -355,7 +362,7 @@ number-of-cars
 number-of-cars
 1
 number-of-lanes * world-width
-1.0
+7.0
 1
 1
 NIL
@@ -541,7 +548,7 @@ Charge
 10.0
 true
 false
-"" " let miny  min [charge] of turtles - 1\n let maxy max [charge] of turtles\n \n set miny precision miny 0\n \n set maxy precision maxy 0\n \n set-plot-y-range miny 100"
+"" " let miny  min [charge] of turtles - 1\n let maxy max [charge] of turtles\n \n set miny precision miny 0\n \n set maxy precision maxy 0\n \n \n \n set-plot-y-range miny 100"
 PENS
 "default" 1.0 0 -16777216 true "" "plot mean [charge] of turtles"
 "pen-1" 1.0 0 -2674135 true "" "plot [charge] of selected-car"
