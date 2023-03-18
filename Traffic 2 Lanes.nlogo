@@ -3,6 +3,8 @@ globals [
   lanes          ; a list of the y coordinates of different lanes
   charge-nodes    ; a list of charging nodes
   cost           ; cost of the charging
+  cost-per-charge ;how much money is spent per electrical charge
+  total-charge    ;How much charging has been done
 ]
 
 turtles-own [
@@ -248,11 +250,15 @@ to update-energy-value
       set cost cost + 0.00444472222222              ; Add cost of electricity to charge vehicles to total cost (energy given multipled by .080005$/kWh multiplied by efficiency of charger (90%?))
       ask charging-cars[                            ; ask only charging turtles
         set  charge charge + 0.05                   ; charge car by certain amount
+        set total-charge total-charge + .05         ;adds the charge amount to the running total of charge distribute
+        set cost cost + 0.00444472222222
       ]
     ]
   ]
+  set cost-per-charge cost / total-charge
+  print (cost-per-charge)
+  ;print(cost)                                       ;Print total cost after cars cross charging station
 
-  print(cost)                                       ;Print total cost after cars cross charging station
 
 end
 
@@ -270,7 +276,7 @@ end
 GRAPHICS-WINDOW
 225
 10
-1013
+653
 359
 -1
 -1
@@ -284,8 +290,8 @@ GRAPHICS-WINDOW
 1
 0
 1
--19
-19
+-10
+10
 -8
 8
 1
