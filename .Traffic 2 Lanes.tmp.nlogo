@@ -257,7 +257,7 @@ to update-energy-value
 end
 
 
-to-report economic-cost                             ;Never got this working... total cost is printed each time a car passes over a charging station. Do we want to estimate cost for a set amount of time? Divide cost by charge imparted?
+to-report economic-cost                             ;Never got this working... total cost is printed each time a car passes over a charging station. Do we want to estimate cost for a set amount of time? Divide cost by charg
   print (cost)
   report cost
 end
