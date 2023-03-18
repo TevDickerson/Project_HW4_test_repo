@@ -15,6 +15,7 @@ turtles-own [
 to setup
   clear-all
   set-default-shape turtles "car"
+  set-world
   draw-road
   create-charging-nodes
   create-or-remove-cars
@@ -22,6 +23,19 @@ to setup
   ask selected-car [ set color red ]
   reset-ticks
 end
+
+to set-world
+
+  let new-xcor-min -1 * (DISTANCE-BETWEEN-NODES / 2)
+  let new-xcor-max (DISTANCE-BETWEEN-NODES / 2)
+
+  resize-world new-xcor-min new-xcor-max min-pycor max-pycor
+
+end
+
+
+
+
 
 to create-or-remove-cars
 
@@ -107,10 +121,16 @@ end
 
 to create-charging-nodes
 
-  let road-patches patches with [ member? pycor lanes ]      ; filters patches to just lane patches
-  set charge-nodes road-patches with [pxcor = 0 ]            ; filters lane patches to just one lane node.
+  let road-patches patches with [ member? pycor lanes ]      ; filters patches to just lane patches that make the road the cars drive on
 
-  ask charge-nodes [set pcolor red]
+  set charge-nodes []
+
+    set charge-nodes road-patches with [pxcor = 0 ]            ; filters lane patches to just patches with a specific x coordinate into a list
+    ask charge-nodes [set pcolor red]
+
+  set charge-nodes road-patches with [pcolor = red]                          ; use list of charging nodes to set color red
+  print(charge-nodes)
+
 end
 
 
@@ -216,23 +236,22 @@ end
 to update-energy-value
   ; Update the energy of the car.
 
-  let charging-cars 0
+  let charging-cars 0                             ; set the list of cars on charging nodes equal to 0
 
-  ask turtles [set charge charge - 0.1 * speed]
+  ask turtles [set charge charge - 0.1 * speed]     ; reduce the charge of all cars at each time step by set amount
 
-  ask turtles[
-    if any? turtles-on charge-nodes
+  ask turtles[                                      ; ask all turtles
+    if any? turtles-on charge-nodes                 ; if there are any turtles on a charging nodes
     [
-      set charging-cars turtles-on charge-nodes
+      set charging-cars turtles-on charge-nodes     ; make a list of turtles on charging nodes
 
-      ask charging-cars[
-        set  charge charge + 0.05
+      ask charging-cars[                            ; ask only charging turtles
+        set  charge charge + 0.05                   ; charge car by certain amount
       ]
-
     ]
   ]
 
-  show charge-nodes
+
 
 
 end
@@ -362,7 +381,7 @@ number-of-cars
 number-of-cars
 1
 number-of-lanes * world-width
-7.0
+10.0
 1
 1
 NIL
@@ -528,7 +547,7 @@ max-patience
 max-patience
 1
 100
-73.0
+21.0
 1
 1
 NIL
@@ -552,6 +571,39 @@ false
 PENS
 "default" 1.0 0 -16777216 true "" "plot mean [charge] of turtles"
 "pen-1" 1.0 0 -2674135 true "" "plot [charge] of selected-car"
+
+PLOT
+1070
+180
+1270
+330
+Power
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count turtles"
+
+SLIDER
+1080
+365
+1297
+398
+DISTANCE-BETWEEN-NODES
+DISTANCE-BETWEEN-NODES
+10
+50
+40.0
+2
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
