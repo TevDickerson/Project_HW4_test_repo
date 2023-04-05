@@ -5,6 +5,7 @@ globals [
   cost           ; cost of the charging
   cost-per-charge ;how much money is spent per electrical charge
   total-charge    ;How much charging has been done
+  INITIAL-COST
 ]
 
 turtles-own [
@@ -28,17 +29,13 @@ to setup
 end
 
 to set-world
-
   let new-xcor-min -1 * (DISTANCE-BETWEEN-NODES / 2)
   let new-xcor-max (DISTANCE-BETWEEN-NODES / 2)
   set cost 4800000 * (1 / DISTANCE-BETWEEN-NODES)              ;initial cost is equal to the 4.8M inital cost per lane mile, divided by the distance between nodes
+  set INITIAL-COST cost
   resize-world new-xcor-min new-xcor-max min-pycor max-pycor
 
 end
-
-
-
-
 
 to create-or-remove-cars
 
@@ -65,7 +62,6 @@ to create-or-remove-cars
   ]
 
   ask turtles [set label precision charge 1]
-
 
 end
 
@@ -121,7 +117,6 @@ to draw-line [ y line-color gap ]
   ]
 end
 
-
 to create-charging-nodes
 
   let road-patches patches with [ member? pycor lanes ]      ; filters patches to just lane patches that make the road the cars drive on
@@ -132,7 +127,7 @@ to create-charging-nodes
     ask charge-nodes [set pcolor red]
 
   set charge-nodes road-patches with [pcolor = red]                          ; use list of charging nodes to set color red
-  print(charge-nodes)
+
 
 end
 
@@ -144,9 +139,7 @@ to go
   ask turtles [ move-forward ]
   ask turtles with [ patience <= 0 ] [ choose-new-lane ]
   ask turtles with [ ycor != target-lane ] [ move-to-target-lane ]
-
   update-energy-value
-
   tick
 end
 
@@ -192,6 +185,17 @@ to move-to-target-lane ; turtle procedure
   set heading ifelse-value target-lane < ycor [ 180 ] [ 0 ]
   let blocking-cars other turtles in-cone (1 + abs (ycor - target-lane)) 180 with [ x-distance <= 1 ]
   let blocking-car min-one-of blocking-cars [ distance myself ]
+
+  if blocking-car != nobody [
+    if [distance myself] of blocking-car = 0 [
+      print "Crash"
+      show count turtles
+      ask blocking-car [die]
+      ask self [die]
+      ;; Ends Execution of function
+    ]
+  ]
+
   ifelse blocking-car = nobody [
     forward 0.2
     set ycor precision ycor 1 ; to avoid floating point errors
@@ -247,7 +251,7 @@ to update-energy-value
     if any? turtles-on charge-nodes                 ; if there are any turtles on a charging nodes
     [
       set charging-cars turtles-on charge-nodes     ; make a list of turtles on charging nodes
-      set cost cost + 0.00444472222222              ; Add cost of electricity to charge vehicles to total cost (energy given multipled by .080005$/kWh multiplied by efficiency of charger (90%?))
+      set cost cost + 0.00444472222222
       ask charging-cars[                            ; ask only charging turtles
         set  charge charge + 0.05                   ; charge car by certain amount
         set total-charge total-charge + .05         ;adds the charge amount to the running total of charge distribute
@@ -255,28 +259,15 @@ to update-energy-value
       ]
     ]
   ]
-  set cost-per-charge cost / total-charge
-  print (cost-per-charge)
-  ;print(cost)                                       ;Print total cost after cars cross charging station
+
 
 
 end
-
-
-to-report economic-cost                             ;Never got this working... total cost is printed each time a car passes over a charging station. Do we want to estimate cost for a set amount of time? Divide cost by charge imparted?
-  print (cost)
-  report cost
-end
-
-
-
-; Copyright 1998 Uri Wilensky.
-; See Info tab for full copyright and license.
 @#$#@#$#@
 GRAPHICS-WINDOW
 225
 10
-653
+573
 359
 -1
 -1
@@ -290,8 +281,8 @@ GRAPHICS-WINDOW
 1
 0
 1
--10
-10
+-8
+8
 -8
 8
 1
@@ -424,7 +415,7 @@ acceleration
 acceleration
 0.001
 0.01
-0.003
+0.002
 0.001
 1
 NIL
@@ -439,7 +430,7 @@ deceleration
 deceleration
 0.01
 0.1
-0.02
+0.01
 0.01
 1
 NIL
@@ -554,7 +545,7 @@ max-patience
 max-patience
 1
 100
-21.0
+12.0
 1
 1
 NIL
@@ -606,7 +597,7 @@ DISTANCE-BETWEEN-NODES
 DISTANCE-BETWEEN-NODES
 10
 50
-20.0
+16.0
 2
 1
 NIL
@@ -1042,6 +1033,28 @@ NetLogo 6.3.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="experiment" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>count turtles</metric>
+    <enumeratedValueSet variable="max-patience">
+      <value value="21"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="acceleration">
+      <value value="0.003"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number-of-cars">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="DISTANCE-BETWEEN-NODES">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="deceleration">
+      <value value="0.02"/>
+    </enumeratedValueSet>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default
