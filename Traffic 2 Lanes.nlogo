@@ -50,7 +50,7 @@ to create-or-remove-cars
     move-to one-of free road-patches
     set target-lane pycor
     set heading 90
-    set top-speed 0.5 + random-float 0.5
+    set top-speed 6.85 + random-normal 0 0.75
     set speed 0.5
     set patience random max-patience
     set charge 100
@@ -232,12 +232,7 @@ to-report car-color
   report one-of [ blue cyan sky ] + 1.5 + random-float 1.0
 end
 
-to-report number-of-lanes
-  ; To make the number of lanes easily adjustable, remove this
-  ; reporter and create a slider on the interface with the same
-  ; name. 8 lanes is the maximum that currently fit in the view.
-  report 2
-end
+
 
 
 to update-energy-value
@@ -256,6 +251,7 @@ to update-energy-value
         set  charge charge + 0.05                   ; charge car by certain amount
         set total-charge total-charge + .05         ;adds the charge amount to the running total of charge distribute
         set cost cost + 0.00444472222222
+
       ]
     ]
   ]
@@ -267,7 +263,7 @@ end
 GRAPHICS-WINDOW
 225
 10
-573
+453
 359
 -1
 -1
@@ -281,8 +277,8 @@ GRAPHICS-WINDOW
 1
 0
 1
--8
-8
+-5
+5
 -8
 8
 1
@@ -379,7 +375,7 @@ number-of-cars
 number-of-cars
 1
 number-of-lanes * world-width
-10.0
+19.0
 1
 1
 NIL
@@ -415,7 +411,7 @@ acceleration
 acceleration
 0.001
 0.01
-0.002
+0.005
 0.001
 1
 NIL
@@ -430,7 +426,7 @@ deceleration
 deceleration
 0.01
 0.1
-0.01
+0.03
 0.01
 1
 NIL
@@ -545,7 +541,7 @@ max-patience
 max-patience
 1
 100
-12.0
+19.0
 1
 1
 NIL
@@ -597,7 +593,7 @@ DISTANCE-BETWEEN-NODES
 DISTANCE-BETWEEN-NODES
 10
 50
-16.0
+10.0
 2
 1
 NIL
@@ -620,6 +616,21 @@ false
 "" ""
 PENS
 "Cost" 1.0 0 -16777216 true "" "Plot [cost]"
+
+SLIDER
+1080
+405
+1252
+438
+number-of-lanes
+number-of-lanes
+2
+5
+2.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
