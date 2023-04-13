@@ -1,116 +1,37 @@
-extensions [array]
-
 globals [
   selected-car   ; the currently selected car
   lanes          ; a list of the y coordinates of different lanes
   charge-nodes    ; a list of charging nodes
   cost           ; cost of the charging
+  cost-per-charge ;how much money is spent per electrical charge
   total-charge    ;How much charging has been done
   INITIAL-COST
-  energy-change
-  car-counter     ;How many cars travel over the nodes
-  density-vec
-  time-vec
-  cars-per-mile
-  deltaX
-  selected-car-total-miles
 ]
 
 turtles-own [
   speed         ; the current speed of the car
   top-speed     ; the maximum speed of the car (different for all cars)
-  acceleration  ; the acceleration of the car (std 0.120)
-  deceleration  ; the deceleration of the car
   target-lane   ; the desired lane of the car
   patience      ; the driver's current level of patience
   charge        ; the car's charge percentage
-  mass          ; the car's mass
-  total_dist    ; total distance the car travels.
-  state         ; accelerating, cruising, decelerating
-  charging-node-heading       ; Heading for charging node
-  needs-charging              ; true if needs to charge
-  vehicle-type
-
 ]
 
 to setup
   clear-all
-  reset-ticks
-
-
-
-  set density-vec [0.2811271953
-0.1830563496
-0.1176757859
-0.1028165668
-0.1979155687
-0.4802407304
-1.300469621
-1.398540467
-1.258863808
-1.244004589
-1.336131747
-1.407455998
-1.457977343
-1.54118897
-1.585766627
-1.56496372
-1.508498688
-1.428258905
-1.208342463
-0.942521306
-    0.4541835517]
-
-  set time-vec [1989.535556
-5308.914158
-8921.179107
-12826.3304
-16243.33779
-19953.23152
-26982.50385
-30692.39758
-34304.66253
-37819.2987
-41529.19243
-44946.19981
-49046.60868
-52268.35849
-55880.62344
-59981.0323
-62909.89578
-66326.90316
-70036.79689
-77310.96318
-84611.20441]
-
-
-
-  set cars-per-mile (cars-per-mile-mean * 0.4541835517)  ; 0.4541835517
   set-default-shape turtles "car"
   set-world
   draw-road
   create-charging-nodes
   create-or-remove-cars
-  set selected-car one-of turtles with [vehicle-type = "EV"]
-
-  if selected-car = nobody [
-    set selected-car one-of turtles
-  ]
-  ask selected-car [
-    set color red
-    set shape "car"
-  ]
-
-  ask selected-car [set label precision charge 1]
-
-  set cost 0
-
+  set selected-car one-of turtles
+  ask selected-car [ set color red ]
+  reset-ticks
 end
 
 to set-world
   let new-xcor-min -1 * (DISTANCE-BETWEEN-NODES / 2)
   let new-xcor-max (DISTANCE-BETWEEN-NODES / 2)
-  ;set cost 4800000 * (1 / DISTANCE-BETWEEN-NODES)              ;initial cost is equal to the 4.8M inital cost per lane mile, divided by the distance between nodes
+  set cost 4800000 * (1 / DISTANCE-BETWEEN-NODES)              ;initial cost is equal to the 4.8M inital cost per lane mile, divided by the distance between nodes
   set INITIAL-COST cost
   resize-world new-xcor-min new-xcor-max min-pycor max-pycor
 
@@ -124,31 +45,15 @@ to create-or-remove-cars
     set number-of-cars count road-patches
   ]
 
-  calc-num-cars
-
   create-turtles (number-of-cars - count turtles) [
     set color car-color
     move-to one-of free road-patches
     set target-lane pycor
     set heading 90
-    set top-speed 6.8 + random-normal 0 0.75
+    set top-speed 6.85 + random-normal 0 0.75
     set speed 0.5
     set patience random max-patience
-    set charge 3.8 * (10 ^ 8)
-    set acceleration random-normal mean_acceleration 0.120
-    set deceleration mean-deceleration
-    set mass 2400 ; kg
-    set total_dist 0 ; net logo units
-    set state 1
-
-    ifelse random 100 < (EV-density-percent) [
-     set vehicle-type "EV"
-    ]
-    [
-      set vehicle-type "Other"
-      set shape "truck"
-    ]
-
+    set charge 100
   ]
 
   if count turtles > number-of-cars [
@@ -156,7 +61,7 @@ to create-or-remove-cars
     ask n-of n [ other turtles ] of selected-car [ die ]
   ]
 
-
+  ask turtles [set label precision charge 1]
 
 end
 
@@ -218,18 +123,10 @@ to create-charging-nodes
 
   set charge-nodes []
 
-  set charge-nodes road-patches with [pxcor = 0 ]            ; filters lane patches to just patches with a specific x coordinate into a list
-  ask charge-nodes [set pcolor red]
+    set charge-nodes road-patches with [pxcor = 0 ]            ; filters lane patches to just patches with a specific x coordinate into a list
+    ask charge-nodes [set pcolor red]
 
   set charge-nodes road-patches with [pcolor = red]                          ; use list of charging nodes to set color red
-
-  repeat (LENGTH-OF-NODE - 1) [
-    ask charge-nodes[
-      ask patch-at-heading-and-distance 90 1 [ set pcolor red ]
-    ]
-    set charge-nodes road-patches with [pcolor = red]
-  ]
-
 
 
 end
@@ -238,22 +135,11 @@ end
 
 
 to go
-  if ticks > (86400 / sec-per-tick) [ stop ]
   create-or-remove-cars
   ask turtles [ move-forward ]
   ask turtles with [ patience <= 0 ] [ choose-new-lane ]
   ask turtles with [ ycor != target-lane ] [ move-to-target-lane ]
   update-energy-value
-  calc_Distance_Traveled
-
-  if [charge] of selected-car > 0 [
-
-    ask selected-car[
-      set selected-car-total-miles  total_dist * (feet-per-unit / 5280)
-    ]
-  ]
-
-  ask selected-car [set label precision charge 1]
   tick
 end
 
@@ -268,26 +154,19 @@ to move-forward ; turtle procedure
     set speed [ speed ] of blocking-car
     slow-down-car
   ]
-
-  forward speed * sec-per-tick
+  forward speed
 end
 
 to slow-down-car ; turtle procedure
-  set speed (speed - deceleration * sec-per-tick)
+  set speed (speed - deceleration)
   if speed < 0 [ set speed deceleration ]
   ; every time you hit the brakes, you loose a little patience
   set patience patience - 1
-  set state 0
 end
 
 to speed-up-car ; turtle procedure
-  set speed (speed + acceleration * sec-per-tick)
-  set state 1
-  if speed > top-speed [
-    set speed top-speed
-    set state 2
-  ]
-
+  set speed (speed + acceleration)
+  if speed > top-speed [ set speed top-speed ]
 end
 
 to choose-new-lane ; turtle procedure
@@ -361,109 +240,30 @@ to update-energy-value
 
   let charging-cars 0                             ; set the list of cars on charging nodes equal to 0
 
-  ;ask turtles [set charge charge - 0.1 * speed]     ; reduce the charge of all cars at each time step by set amount
+  ask turtles [set charge charge - 0.1 * speed]     ; reduce the charge of all cars at each time step by set amount
 
+  ask turtles[                                      ; ask all turtles
+    if any? turtles-on charge-nodes                 ; if there are any turtles on a charging nodes
+    [
+      set charging-cars turtles-on charge-nodes     ; make a list of turtles on charging nodes
+      set cost cost + 0.00444472222222
+      ask charging-cars[                            ; ask only charging turtles
+        set  charge charge + 0.05                   ; charge car by certain amount
+        set total-charge total-charge + .05         ;adds the charge amount to the running total of charge distribute
+        set cost cost + 0.00444472222222
 
-
-  ask turtles with [vehicle-type = "EV"] [
-    Driving-Energy-Dynamics
-  ]
-
-
-  ask selected-car[
-    set charge charge - energy-change
-  ]
-
-                                        ; ask all turtles
-  if any? turtles-on charge-nodes                 ; if there are any turtles on a charging nodes
-  [
-    set charging-cars turtles-on charge-nodes     ; make a list of turtles on charging nodes
-
-
-    ask charging-cars with [vehicle-type = "EV"] [                            ; ask only charging turtles
-      set  charge charge + NODE-POWER-OUTPUT * sec-per-tick                   ; charge car by certain amount
-      ;set total-charge total-charge + .05         ;adds the charge amount to the running total of charge distribute
-      set cost cost + ((NODE-POWER-OUTPUT * sec-per-tick) / (3600)) * Electricity-Cost
-
-    ]
-  ]
-end
-
-
-
-
-to Driving-Energy-Dynamics
-
-  ; Decelerating
-  if state = 0 [
-    ;set energy-change 0.5 * 0.48 * 1.2205 * (4.572 ^ 3) * (speed) ^ 3
-    set energy-change 0
-  ]
-  ; Accelerating
-  if state = 1 [
-    set energy-change mass * acceleration  * ((4.572) ^ 2) * ( (speed * sec-per-tick) * (acceleration  / 2) * (sec-per-tick ^ 2)) + 0.5 * 0.48 * 1.2205 * (0.25 / (acceleration  * 4.572)) * (4.572 ^ 4) * (((speed  + (acceleration * sec-per-tick)) ^ 4) - speed) +  Crr * mass * 9.81 * ( (speed * sec-per-tick) * (acceleration  / 2) * (sec-per-tick ^ 2))
-  ]
-  ; constant velocity
-  if state = 2 [
-    set energy-change 0.5 * 0.48 * 1.2205 * (4.572 ^ 3) * (speed) ^ 3 * sec-per-tick + Crr * mass * 9.81 * speed * sec-per-tick
-  ]
-
-
-
-
-
-end
-
-;to Driving-Energy-Dynamics
-;
-;
-;  ifelse speed != top-speed [
-;    set energy-change mass * acceleration * ((4.572) ^ 2) * ( speed * (acceleration / 2)) + 0.5 * 0.48 * 1.2205 * (0.25 / (acceleration * 4.572)) * (4.572 ^ 4) * (((speed + acceleration) ^ 4) - speed)
-;  ]
-;  [
-;     set energy-change  0.5 * 0.48 * 1.2205 * (0.25 / (acceleration * 4.572)) * (4.572 ^ 4) * (((speed + acceleration) ^ 4) - speed)
-;  ]
-;  set charge charge - energy-change
-;
-;
-;end
-
-to calc_Distance_Traveled
-  ask selected-car[
-    set total_dist total_dist + speed * sec-per-tick
-  ]
-
-  if [charge] of selected-car > 0 [
-
-    ask selected-car[
-      set selected-car-total-miles  total_dist * (feet-per-unit / 5280)
-    ]
-  ]
-end
-
-
-
-
-to calc-num-cars
-
-  foreach time-vec [x ->
-    if ticks > (x / sec-per-tick) [
-      set cars-per-mile (cars-per-mile-mean * (item (position x time-vec) density-vec))
+      ]
     ]
   ]
 
-  set number-of-cars ceiling (cars-per-mile * (DISTANCE-BETWEEN-NODES + 1) * number-of-lanes * (feet-per-unit / 5280))
+
 
 end
-
-
-
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 225
 10
-653
+453
 359
 -1
 -1
@@ -477,8 +277,8 @@ GRAPHICS-WINDOW
 1
 0
 1
--10
-10
+-5
+5
 -8
 8
 1
@@ -540,9 +340,9 @@ NIL
 
 BUTTON
 10
-350
+190
 215
-383
+223
 select car
 select-car
 T
@@ -557,11 +357,11 @@ NIL
 
 MONITOR
 130
-490
+335
 215
-535
+380
 mean speed
-(mean [speed] of turtles) * 10.227
+mean [speed] of turtles
 2
 1
 11
@@ -575,22 +375,43 @@ number-of-cars
 number-of-cars
 1
 number-of-lanes * world-width
-3.0
+19.0
 1
 1
 NIL
 HORIZONTAL
+
+PLOT
+305
+385
+675
+560
+Car Speeds
+Time
+Speed
+0.0
+300.0
+0.0
+0.5
+true
+true
+"" ""
+PENS
+"average" 1.0 0 -10899396 true "" "plot mean [ speed ] of turtles"
+"max" 1.0 0 -11221820 true "" "plot max [ speed ] of turtles"
+"min" 1.0 0 -13345367 true "" "plot min [ speed ] of turtles"
+"selected-car" 1.0 0 -2674135 true "" "plot [ speed ] of selected-car"
 
 SLIDER
 10
 85
 215
 118
-mean_acceleration
-mean_acceleration
+acceleration
+acceleration
 0.001
-1
-0.527
+0.01
+0.005
 0.001
 1
 NIL
@@ -601,21 +422,42 @@ SLIDER
 120
 215
 153
-mean-deceleration
-mean-deceleration
+deceleration
+deceleration
 0.01
-1
-0.66
+0.1
+0.03
 0.01
 1
 NIL
 HORIZONTAL
 
+PLOT
+685
+385
+1055
+560
+Driver Patience
+Time
+Patience
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"average" 1.0 0 -10899396 true "" "plot mean [ patience ] of turtles"
+"max" 1.0 0 -11221820 true "" "plot max [ patience ] of turtles"
+"min" 1.0 0 -13345367 true "" "plot min [ patience ] of turtles"
+"selected car" 1.0 0 -2674135 true "" "plot [patience] of selected-car"
+
 BUTTON
 10
-385
+225
 215
-418
+258
 follow selected car
 follow selected-car
 NIL
@@ -630,9 +472,9 @@ NIL
 
 BUTTON
 10
-420
+260
 215
-453
+293
 watch selected car
 watch selected-car
 NIL
@@ -647,9 +489,9 @@ NIL
 
 BUTTON
 10
-455
+295
 215
-488
+328
 reset perspective
 reset-perspective
 NIL
@@ -664,14 +506,31 @@ NIL
 
 MONITOR
 10
-490
+335
 130
-535
+380
 selected car speed
 [ speed ] of selected-car
 2
 1
 11
+
+PLOT
+10
+386
+300
+561
+Cars Per Lane
+Time
+Cars
+0.0
+0.0
+0.0
+0.0
+true
+true
+"set-plot-y-range (floor (count turtles * 0.4)) (ceiling (count turtles * 0.6))\nforeach range length lanes [ i ->\n  create-temporary-plot-pen (word (i + 1))\n  set-plot-pen-color item i base-colors\n]" "foreach range length lanes [ i ->\n  set-current-plot-pen (word (i + 1))\n  plot count turtles with [ round ycor = item i lanes ]\n]"
+PENS
 
 SLIDER
 10
@@ -682,7 +541,7 @@ max-patience
 max-patience
 1
 100
-32.0
+19.0
 1
 1
 NIL
@@ -702,9 +561,28 @@ Charge
 10.0
 true
 false
+"" " let miny  min [charge] of turtles - 1\n let maxy max [charge] of turtles\n \n set miny precision miny 0\n \n set maxy precision maxy 0\n \n \n \n set-plot-y-range miny 100"
+PENS
+"default" 1.0 0 -16777216 true "" "plot mean [charge] of turtles"
+"pen-1" 1.0 0 -2674135 true "" "plot [charge] of selected-car"
+
+PLOT
+1070
+180
+1270
+330
+Power
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
 "" ""
 PENS
-"pen-1" 1.0 0 -2674135 true "" "plot [charge] of selected-car"
+"default" 1.0 0 -16777216 true "" "plot count turtles"
 
 SLIDER
 1080
@@ -715,35 +593,35 @@ DISTANCE-BETWEEN-NODES
 DISTANCE-BETWEEN-NODES
 10
 50
-20.0
+10.0
 2
 1
 NIL
 HORIZONTAL
 
 PLOT
-1095
-515
-1295
-665
+205
+710
+405
+860
 plot 1
 Time
 Cost
 0.0
-1000.0
+1.0E8
 0.0
-1.0
+1.0E8
 true
 false
 "" ""
 PENS
-"Cost" 1.0 0 -16777216 true "" "Plot cost"
+"Cost" 1.0 0 -16777216 true "" "Plot [cost]"
 
 SLIDER
 1080
-435
-1295
-468
+405
+1252
+438
 number-of-lanes
 number-of-lanes
 2
@@ -753,149 +631,6 @@ number-of-lanes
 1
 NIL
 HORIZONTAL
-
-PLOT
-1095
-195
-1295
-345
-Distance
-Distance
-time
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"default" 1.0 0 -16777216 true "" "plot selected-car-total-miles"
-
-MONITOR
-15
-560
-167
-605
-NIL
-count turtles
-17
-1
-11
-
-SLIDER
-1080
-400
-1295
-433
-LENGTH-OF-NODE
-LENGTH-OF-NODE
-1
-3
-1.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-10
-190
-215
-223
-cars-per-mile-mean
-cars-per-mile-mean
-10
-100
-48.0
-1
-1
-NIL
-HORIZONTAL
-
-INPUTBOX
-180
-555
-327
-615
-sec-per-tick
-0.1
-1
-0
-Number
-
-INPUTBOX
-335
-555
-482
-615
-feet-per-unit
-15.0
-1
-0
-Number
-
-SLIDER
-1080
-470
-1295
-503
-NODE-POWER-OUTPUT
-NODE-POWER-OUTPUT
-0
-200
-18.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-10
-225
-215
-258
-EV-density-percent
-EV-density-percent
-1
-100
-70.0
-1
-1
-NIL
-HORIZONTAL
-
-INPUTBOX
-485
-555
-632
-615
-Crr
-0.01
-1
-0
-Number
-
-INPUTBOX
-635
-555
-782
-615
-Electricity-Cost
-8.0
-1
-0
-Number
-
-TEXTBOX
-785
-600
-815
-618
-kWh
-11
-0.0
-1
 
 @#$#@#$#@
 ## WHAT IS IT?
