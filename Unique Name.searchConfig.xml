@@ -6,8 +6,8 @@
         <modelFile>F:\Spencer Fisher\Documents\Optimization\Project_HW4_test_repo\Traffic 2 Lanes.nlogo</modelFile>
         <modelSetupCommands>setup</modelSetupCommands>
         <modelStepCommands>go</modelStepCommands>
-        <modelStopCondition>count turtles &gt; 1000</modelStopCondition>
-        <modelStepLimit>864001</modelStepLimit>
+        <modelStopCondition>ticks &gt; 864000</modelStopCondition>
+        <modelStepLimit>864000</modelStepLimit>
         <modelMetricReporter>cost - selected-car-total-miles</modelMetricReporter>
         <modelMeasureIf>true</modelMeasureIf>
     </modelInfo>
