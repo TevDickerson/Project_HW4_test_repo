@@ -1,0 +1,2 @@
+"search-number","evaluation","number-of-cars*","mean_acceleration*","mean-deceleration*","max-patience*","distance-between-nodes*","number-of-lanes*","length-of-node*","cars-per-mile-mean*","sec-per-tick*","feet-per-unit*","node-power-output*","ev-density-percent*","crr*","electricity-cost*","cda*","num-replicates","best-fitness-so-far"
+"1","500","3","0.527","0.66","35","10","2","2","48","0.1","15","30","20","0.01","8","0.5","5","-752.3328732949515"
