@@ -99,6 +99,7 @@ to setup
   ask selected-car [
     set color red
     set shape "car"
+    set vehicle-type "EV"
   ]
 
   ask selected-car [set label precision charge 1]
@@ -457,12 +458,11 @@ to calc-num-cars
 end
 
 
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 225
 10
-653
+813
 359
 -1
 -1
@@ -476,8 +476,8 @@ GRAPHICS-WINDOW
 1
 0
 1
--10
-10
+-14
+14
 -8
 8
 1
@@ -574,7 +574,7 @@ number-of-cars
 number-of-cars
 1
 number-of-lanes * world-width
-3.0
+4.0
 1
 1
 NIL
@@ -681,7 +681,7 @@ max-patience
 max-patience
 1
 100
-32.0
+35.0
 1
 1
 NIL
@@ -714,7 +714,7 @@ DISTANCE-BETWEEN-NODES
 DISTANCE-BETWEEN-NODES
 10
 50
-20.0
+28.0
 2
 1
 NIL
@@ -791,7 +791,7 @@ LENGTH-OF-NODE
 LENGTH-OF-NODE
 1
 3
-1.0
+2.0
 1
 1
 NIL
@@ -843,7 +843,7 @@ NODE-POWER-OUTPUT
 NODE-POWER-OUTPUT
 0
 200
-18.0
+30.0
 1
 1
 NIL
@@ -858,7 +858,7 @@ EV-density-percent
 EV-density-percent
 1
 100
-70.0
+20.0
 1
 1
 NIL
@@ -905,7 +905,7 @@ CdA
 CdA
 0
 1
-0.48
+0.5
 0.01
 1
 NIL
