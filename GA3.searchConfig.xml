@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!DOCTYPE search SYSTEM "behaviorsearch.dtd">
+<search>
+    <bsearchVersionNumber>1.10</bsearchVersionNumber>
+    <modelInfo>
+        <modelFile>F:\Spencer Fisher\Documents\Optimization\Project_HW4_test_repo\Traffic 2 Lanes.nlogo</modelFile>
+        <modelSetupCommands>setup</modelSetupCommands>
+        <modelStepCommands>go</modelStepCommands>
+        <modelStopCondition>count turtles &gt; 1000</modelStopCondition>
+        <modelStepLimit>864001</modelStepLimit>
+        <modelMetricReporter>cost - selected-car-total-miles</modelMetricReporter>
+        <modelMeasureIf>true</modelMeasureIf>
+    </modelInfo>
+    <fitnessInfo>
+        <fitnessMinimized>true</fitnessMinimized>
+        <fitnessCollecting>AT_FINAL_STEP</fitnessCollecting>
+        <fitnessSamplingReplications>10</fitnessSamplingReplications>
+        <fitnessCombineReplications>MEAN</fitnessCombineReplications>
+    </fitnessInfo>
+    <searchSpace>
+        <paramSpec>["number-of-cars" 3]</paramSpec>
+        <paramSpec>["mean_acceleration" 0.527]</paramSpec>
+        <paramSpec>["mean-deceleration" 0.66]</paramSpec>
+        <paramSpec>["max-patience" 35]</paramSpec>
+        <paramSpec>["distance-between-nodes" [10 2 50]]</paramSpec>
+        <paramSpec>["number-of-lanes" 2]</paramSpec>
+        <paramSpec>["length-of-node" [1 1 3]]</paramSpec>
+        <paramSpec>["cars-per-mile-mean" 48]</paramSpec>
+        <paramSpec>["sec-per-tick" 0.1]</paramSpec>
+        <paramSpec>["feet-per-unit" 15]</paramSpec>
+        <paramSpec>["node-power-output" [0 1 200]]</paramSpec>
+        <paramSpec>["ev-density-percent" 20]</paramSpec>
+        <paramSpec>["crr" 0.01]</paramSpec>
+        <paramSpec>["electricity-cost" 8]</paramSpec>
+        <paramSpec>["cda" 0.5]</paramSpec>
+    </searchSpace>
+    <searchMethod type="StandardGA">
+        <searchMethodParameter name="mutation-rate" value="0.01"/>
+        <searchMethodParameter name="population-size" value="50"/>
+        <searchMethodParameter name="crossover-rate" value="0.7"/>
+        <searchMethodParameter name="population-model" value="generational"/>
+        <searchMethodParameter name="tournament-size" value="3"/>
+    </searchMethod>
+    <chromosomeRepresentation type="MixedTypeChromosome"/>
+    <caching>true</caching>
+    <evaluationLimit>750</evaluationLimit>
+    <bestCheckingNumReplications>0</bestCheckingNumReplications>
+</search>
